@@ -1,32 +1,39 @@
-from openai import OpenAI
-from ragas.llms import llm_factory
-from ragas.embeddings import HuggingFaceEmbeddings
-from ragas.metrics.collections import (
-    Faithfulness,
-    AnswerRelevancy,
-    ContextPrecision,
-    ContextRecall,
-)
+from langchain_openai import ChatOpenAI
+from langchain_huggingface import HuggingFaceEmbeddings
+from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.metrics._faithfulness import Faithfulness
+from ragas.metrics._answer_relevance import AnswerRelevancy
+from ragas.metrics._context_precision import ContextPrecision
+from ragas.metrics._context_recall import ContextRecall
 
 from src.config import settings
 
 
-def build_llm(provider: str):
+def build_llm(provider: str) -> LangchainLLMWrapper:
     if provider == "openai":
-        client = OpenAI(
-            api_key=settings.openai_api_key.get_secret_value() if settings.openai_api_key else "no-key",
+        api_key = (
+            settings.openai_api_key.get_secret_value()
+            if settings.openai_api_key
+            else None
         )
-        return llm_factory(settings.openai_model, client=client)
+        return LangchainLLMWrapper(
+            ChatOpenAI(model=settings.openai_model, api_key=api_key)
+        )
 
-    client = OpenAI(
-        base_url=f"{str(settings.ollama_base_url).rstrip('/')}/v1",
-        api_key="ollama",
+    return LangchainLLMWrapper(
+        ChatOpenAI(
+            model=settings.ollama_model,
+            base_url=f"{str(settings.ollama_base_url).rstrip('/')}/v1",
+            api_key="ollama",
+        )
     )
-    return llm_factory(settings.ollama_model, client=client)
 
 
-def build_embeddings() -> HuggingFaceEmbeddings:
-    return HuggingFaceEmbeddings(model=settings.embed_model)
+def build_embeddings() -> LangchainEmbeddingsWrapper:
+    return LangchainEmbeddingsWrapper(
+        HuggingFaceEmbeddings(model_name=settings.embed_model)
+    )
 
 
 def build_metrics(names: list, llm, embeddings) -> list:
