@@ -1,0 +1,59 @@
+services:
+  # 1. Твое основное RAG-приложение
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Пробрасываем папку data, чтобы можно было подкидывать PDF на лету
+      - ./data:/app/data
+    env_file:
+      - src/.env
+    environment:
+      # Переопределяем localhost на имена контейнеров для Docker-сети
+      - QDRANT_URL=http://qdrant:6333
+      - INFINITY_BASE_URL=http://infinity:7997
+      # Если Ollama крутится локально на ноуте (не в докере), то в Linux это хост:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    depends_on:
+      - qdrant
+      - infinity
+
+  # 2. Векторная база данных Qdrant
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334" # gRPC порт (опционально, но полезно для скорости)
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # 3. Сервер инференса Infinity (Эмбеддинги + Реранкинг)
+  infinity:
+    image: michaelf34/infinity:latest
+    # Загружаем обе модели, указанные в твоем Pydantic Config
+    command: >
+      v2 
+      --model-id BAAI/bge-m3 
+      --model-id BAAI/bge-reranker-v2-m3 
+      --port 7997
+    ports:
+      - "7997:7997"
+    volumes:
+      - model_cache:/app/.cache
+    # РАСКОММЕНТИРУЙ БЛОК НИЖЕ, ЧТОБЫ ЗАДЕЙСТВОВАТЬ ТВОЮ NVIDIA GF63
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  qdrant_data:
+    name: kernel_rag_qdrant_data
+  model_cache:
+    name: kernel_rag_model_cache
