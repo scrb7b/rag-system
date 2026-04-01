@@ -187,6 +187,7 @@ huggingface-hub==1.8.0
     #   docling
     #   docling-ibm-models
     #   fastembed
+    #   langchain-huggingface
     #   sentence-transformers
     #   tokenizers
     #   transformers
@@ -310,12 +311,15 @@ langchain-core==1.2.23
     #   langchain
     #   langchain-classic
     #   langchain-community
+    #   langchain-huggingface
     #   langchain-openai
     #   langchain-text-splitters
     #   langgraph
     #   langgraph-checkpoint
     #   langgraph-prebuilt
     #   ragas
+langchain-huggingface==1.2.1
+    # via kernel-rag
 langchain-openai==1.1.12
     # via ragas
 langchain-text-splitters==1.1.1
@@ -795,6 +799,7 @@ tinycss2==1.4.0
 tokenizers==0.22.2
     # via
     #   fastembed
+    #   langchain-huggingface
     #   transformers
 torch==2.11.0
     # via
