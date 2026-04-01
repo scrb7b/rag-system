@@ -151,7 +151,7 @@ kernel-rag/
 │   ├── config.py                # Налаштування через .env (Pydantic Settings)
 │   ├── logging_setup.py         # Конфігурація structlog
 │   ├── ingestion/
-│   │   ├── loaders.py           # PDF/HTML → список чанків (через Docling)
+│   │   ├── loaders.py           # PDF/HTML → список чанків (через langchain)
 │   │   └── embedder.py          # VectorStore (Qdrant hybrid + reranker)
 │   ├── generation/
 │   │   ├── base.py              # BaseLLM: prompt builder + абстракція
@@ -230,12 +230,12 @@ python -m src.benchmark.bench_ragas --output results.json
 
 ### Результати (llama3.2 + llm3.2-as-judge, 6 зразків)
 
-| Метрика | Значення | Опис |
-|---|---|---|
-| `faithfulness` | **0.6250** | Відповідь спирається на контекст (без галюцинацій) |
-| `answer_relevancy` | **0.7521** | Відповідь відповідає запитанню |
-| `context_precision` | n/a | Вимагає reference-відповідей у тестовому наборі |
-| `context_recall` | **0.7917** | Контекст покриває необхідну інформацію |
+| Метрика | Значення   | Опис |
+|---|------------|---|
+| `faithfulness` | **0.6458** | Відповідь спирається на контекст (без галюцинацій) |
+| `answer_relevancy` | **0.7610** | Відповідь відповідає запитанню |
+| `context_precision` | n/a        | Вимагає reference-відповідей у тестовому наборі |
+| `context_recall` | **0.8470** | Контекст покриває необхідну інформацію |
 
 > `context_precision = nan` — метрика потребує поля `reference` у тестових зразках (`samples.py`).
 
