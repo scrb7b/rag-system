@@ -13,22 +13,28 @@ class BaseLLM(ABC):
     def _build_context(self, chunks: List[dict]) -> str:
         parts = []
         for i, chunk in enumerate(chunks, 1):
-            source = chunk.get("source", "unknown")
-            parts.append(f"[{i}] (source: {source})\n{chunk['text']}")
+            meta = chunk.get("metadata", {})
+            source = meta.get("filename") or chunk.get("source", "unknown")
+            headings = meta.get("headings") or []
+            header = f"[{i}] {source}"
+            if headings:
+                header += f" › {' › '.join(headings)}"
+            parts.append(f"{header}\n{chunk['text']}")
         return "\n\n---\n\n".join(parts)
 
     def _build_prompt(self, question: str, context: str) -> str:
         return (
-            "You are a document Q&A assistant. Follow these rules exactly:\n\n"
-            "1. Answer using ONLY information explicitly stated in the <context> below.\n"
-            "2. Do NOT infer, combine facts, or add anything from outside the context.\n"
-            "3. If the answer is not found in the context, respond ONLY with:\n"
-            "   - Ukrainian question → 'У наданих документах немає інформації для відповіді.'\n"
-            "   - Russian question  → 'В предоставленных документах нет информации для ответа.'\n"
-            "   - English question  → 'The provided documents do not contain an answer.'\n"
-            "4. ALWAYS respond in the SAME language as the question.\n"
-            "5. Be concise. Cite only what the context says directly.\n\n"
+            "You are a precise document Q&A assistant. Rules:\n\n"
+            "1. Answer using ONLY facts explicitly stated in the provided context.\n"
+            "2. Do NOT infer, assume, or add anything from outside the context.\n"
+            "3. Respond in the SAME language as the question (Ukrainian/Russian/English).\n"
+            "4. Be direct and concise — no preamble, no 'Based on the context...', no explanations.\n"
+            "   Give only the factual answer, nothing else.\n"
+            "5. If the answer is not in the context, reply only:\n"
+            "   - Ukrainian → 'У наданих документах немає інформації для відповіді.'\n"
+            "   - Russian   → 'В предоставленных документах нет информации для ответа.'\n"
+            "   - English   → 'The provided documents do not contain an answer.'\n\n"
             f"<context>\n{context}\n</context>\n\n"
-            f"Question: {question}\n\n"
-            "Answer:"
+            f"<question>{question}</question>\n\n"
+            "Answer (direct, no preamble):"
         )
