@@ -17,8 +17,6 @@ class VectorStore:
         self._client.set_model(settings.embed_model)
         self._client.set_sparse_model(settings.sparse_embed_model)
 
-        # Keep direct references to fastembed models for use in search()
-        # (the deprecated client.query() is broken in qdrant-client 1.17.x)
         embedder = self._client._model_embedder.embedder
         self._dense_model = embedder.get_or_init_model(
             model_name=settings.embed_model, deprecated=True
@@ -101,7 +99,6 @@ class VectorStore:
         if self._reranker and len(hits) > 1:
             texts = [hit["text"] for hit in hits]
             scores = list(self._reranker.rerank(query, texts))
-            # Cross-encoder scores are logits and can be negative — do not threshold them
             hits = sorted(
                 [{**hit, "rerank_score": round(score, 4)} for score, hit in zip(scores, hits)],
                 key=lambda h: h["rerank_score"],
