@@ -1,5 +1,3 @@
-from typing import List
-
 import requests
 import structlog
 
@@ -23,7 +21,7 @@ class OllamaLLM(BaseLLM):
         except Exception as exc:
             raise RuntimeError(f"Cannot connect to Ollama at {self._base_url}. Error: {exc}")
 
-    def generate(self, question: str, context_chunks: List[dict]) -> str:
+    def generate(self, question: str, context_chunks: list[dict]) -> str:
         context = self._build_context(context_chunks)
         prompt = self._build_prompt(question, context)
         payload = {

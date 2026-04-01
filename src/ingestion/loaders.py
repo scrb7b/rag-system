@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from typing import List, Dict, Any
 
 import structlog
 from docling.document_converter import DocumentConverter
@@ -13,7 +12,7 @@ SUPPORTED_EXTENSIONS = frozenset({".pdf", ".html", ".htm"})
 
 converter = DocumentConverter()
 
-def _convert(path: str) -> List[Dict[str, Any]]:
+def _convert(path: str) -> list[dict[str, object]]:
     try:
         result = converter.convert(path)
     except Exception as exc:
@@ -58,8 +57,8 @@ def _convert(path: str) -> List[Dict[str, Any]]:
     return chunks_data
 
 
-def load_directory(directory: str) -> List[Dict[str, Any]]:
-    all_chunks: List[Dict[str, Any]] = []
+def load_directory(directory: str) -> list[dict[str, object]]:
+    all_chunks: list[dict[str, object]] = []
     for root, _, files in os.walk(directory):
         for fname in files:
             if Path(fname).suffix.lower() not in SUPPORTED_EXTENSIONS:
@@ -73,8 +72,8 @@ def load_directory(directory: str) -> List[Dict[str, Any]]:
     return all_chunks
 
 
-def load_files(paths: List[str]) -> List[Dict[str, Any]]:
-    all_chunks: List[Dict[str, Any]] = []
+def load_files(paths: list[str]) -> list[dict[str, object]]:
+    all_chunks: list[dict[str, object]] = []
     for path in paths:
         if Path(path).suffix.lower() not in SUPPORTED_EXTENSIONS:
             log.warning("unsupported_format", path=path)

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 import structlog
 
@@ -8,9 +7,9 @@ log = structlog.get_logger(__name__)
 
 class BaseLLM(ABC):
     @abstractmethod
-    def generate(self, question: str, context_chunks: List[dict]) -> str: ...
+    def generate(self, question: str, context_chunks: list[dict]) -> str: ...
 
-    def _build_context(self, chunks: List[dict]) -> str:
+    def _build_context(self, chunks: list[dict]) -> str:
         parts = []
         for i, chunk in enumerate(chunks, 1):
             meta = chunk.get("metadata", {})

@@ -1,5 +1,4 @@
 import structlog
-from typing import List, Optional
 from qdrant_client import QdrantClient, models
 from qdrant_client.hybrid.fusion import reciprocal_rank_fusion
 
@@ -18,12 +17,8 @@ class VectorStore:
         self._client.set_sparse_model(settings.sparse_embed_model)
 
         embedder = self._client._model_embedder.embedder
-        self._dense_model = embedder.get_or_init_model(
-            model_name=settings.embed_model, deprecated=True
-        )
-        self._sparse_model = embedder.get_or_init_sparse_model(
-            model_name=settings.sparse_embed_model, deprecated=True
-        )
+        self._dense_model = embedder.get_or_init_model(model_name=settings.embed_model, deprecated=True)
+        self._sparse_model = embedder.get_or_init_sparse_model(model_name=settings.sparse_embed_model, deprecated=True)
 
         self._reranker = None
         if settings.enable_reranking:
@@ -32,7 +27,7 @@ class VectorStore:
             log.info("Loading reranker", model=settings.rerank_model)
             self._reranker = TextCrossEncoder(model_name=settings.rerank_model)
 
-    def add_chunks(self, chunks: List[dict], batch_size: int = 64) -> int:
+    def add_chunks(self, chunks: list[dict], batch_size: int = 64) -> int:
         if not chunks:
             return 0
 
@@ -56,7 +51,7 @@ class VectorStore:
         log.info("Indexing complete", chunks=len(texts), collection=self._collection)
         return len(texts)
 
-    def search(self, query: str, top_k: Optional[int] = None) -> List[dict]:
+    def search(self, query: str, top_k: int | None = None) -> list[dict]:
         if not self._client.collection_exists(self._collection):
             return []
 

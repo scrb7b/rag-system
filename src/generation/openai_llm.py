@@ -1,5 +1,3 @@
-from typing import List
-
 import structlog
 from openai import OpenAI, OpenAIError
 from openai.types.chat import (
@@ -23,7 +21,7 @@ class OpenAILLM(BaseLLM):
         self._model = settings.openai_model
         log.info("OpenAI LLM ready", model=self._model)
 
-    def generate(self, question: str, context_chunks: List[dict]) -> str:
+    def generate(self, question: str, context_chunks: list[dict]) -> str:
         context = self._build_context(context_chunks)
         prompt = self._build_prompt(question, context)
         log.debug("Generating answer", model=self._model, context_chunks=len(context_chunks))

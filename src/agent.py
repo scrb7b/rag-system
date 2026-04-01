@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List, Optional
 
 import structlog
 
@@ -13,12 +12,12 @@ log = structlog.get_logger(__name__)
 class QAResult:
     question: str
     answer: str
-    sources: List[str]
-    chunks_used: List[dict]
+    sources: list[str]
+    chunks_used: list[dict]
 
 
 class QAAgent:
-    def __init__(self, vector_store: VectorStore, llm: Optional[BaseLLM] = None) -> None:
+    def __init__(self, vector_store: VectorStore, llm: BaseLLM | None = None) -> None:
         self._store = vector_store
         self._llm = llm or get_llm()
 
