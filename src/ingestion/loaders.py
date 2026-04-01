@@ -1,16 +1,33 @@
 import os
+import re
 from pathlib import Path
 
 import structlog
 from docling.document_converter import DocumentConverter
-from docling.chunking import HierarchicalChunker
 from docling.datamodel.base_models import ConversionStatus
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 log = structlog.get_logger(__name__)
 
 SUPPORTED_EXTENSIONS = frozenset({".pdf", ".html", ".htm"})
 
 converter = DocumentConverter()
+
+_header_splitter = MarkdownHeaderTextSplitter(
+    headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")]
+)
+_char_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=800,
+    chunk_overlap=100,
+)
+
+
+def _clean_markdown(md: str) -> str:
+    md = re.sub(r'<!--.*?-->', '', md, flags=re.DOTALL)
+    md = re.sub(r'\.{4,}\s*\d*', '', md)
+    md = re.sub(r'\n{3,}', '\n\n', md)
+    return md.strip()
+
 
 def _convert(path: str) -> list[dict[str, object]]:
     try:
@@ -32,23 +49,27 @@ def _convert(path: str) -> list[dict[str, object]]:
     if result.status == ConversionStatus.PARTIAL_SUCCESS:
         log.warning("docling_partial_success", path=path)
 
-    chunker = HierarchicalChunker()
-    docling_chunks = chunker.chunk(result.document)
+    md = _clean_markdown(result.document.export_to_markdown())
+
+    header_chunks = _header_splitter.split_text(md)
+    final_chunks = _char_splitter.split_documents(header_chunks)
 
     filename = Path(path).name
     chunks_data = []
 
-    for i, chunk in enumerate(docling_chunks):
+    for i, chunk in enumerate(final_chunks):
         chunks_data.append(
             {
-                "text": chunk.text,
+                "text": chunk.page_content,
                 "source": filename,
                 "chunk_index": i,
                 "metadata": {
                     "filename": filename,
-                    "headings": chunk.meta.headings
-                    if hasattr(chunk.meta, "headings")
-                    else [],
+                    "headings": [
+                        chunk.metadata.get(h)
+                        for h in ("h1", "h2", "h3")
+                        if chunk.metadata.get(h)
+                    ],
                 },
             }
         )
