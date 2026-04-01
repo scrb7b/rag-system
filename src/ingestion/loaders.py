@@ -12,14 +12,8 @@ log = structlog.get_logger(__name__)
 SUPPORTED_EXTENSIONS = frozenset({".pdf", ".html", ".htm"})
 
 converter = DocumentConverter()
-
-_header_splitter = MarkdownHeaderTextSplitter(
-    headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")]
-)
-_char_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=800,
-    chunk_overlap=100,
-)
+_header_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")])
+_char_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
 
 
 def _clean_markdown(md: str) -> str:
